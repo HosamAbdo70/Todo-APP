@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Meine To-Do-Liste</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 60px auto; background: #f7f7f7; }
+    h1 { color: #333; }
+    form { display: flex; gap: 8px; margin-bottom: 20px; }
+    input[type=text] { flex: 1; padding: 8px; }
+    button { padding: 8px 14px; cursor: pointer; }
+    ul { list-style: none; padding: 0; }
+    li { background: white; padding: 10px; margin-bottom: 6px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .erledigt { text-decoration: line-through; color: #999; }
+  </style>
+</head>
+<body>
+  <h1>📝 Meine To-Do-Liste</h1>
+
+  <form action="/add" method="post">
+    <input type="text" name="text" placeholder="Neue Aufgabe..." required>
+    <button type="submit">Hinzufügen</button>
+  </form>
+
+  <ul>
+    {% for aufgabe in aufgaben %}
+      <li>
+        <span class="{{ 'erledigt' if aufgabe.erledigt else '' }}">{{ aufgabe.text }}</span>
+        {% if not aufgabe.erledigt %}
+        <form action="/done/{{ loop.index0 }}" method="post">
+          <button type="submit">Erledigt</button>
+        </form>
+        {% endif %}
+      </li>
+    {% else %}
+      <p>Noch keine Aufgaben vorhanden.</p>
+    {% endfor %}
+  </ul>
+</body>
+</html>

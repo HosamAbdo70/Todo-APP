@@ -1,0 +1,14 @@
+[
+  {
+    "text": "6:00  Aufstehen",
+    "erledigt": true
+  },
+  {
+    "text": "8:00 zu Arbeit gehen",
+    "erledigt": false
+  },
+  {
+    "text": "12:00 Lenen",
+    "erledigt": true
+  }
+]
