@@ -6,6 +6,11 @@ Kleine Flask-Webanwendung zur Verwaltung von Aufgaben (To-Do-Liste).
 import json
 import os
 from flask import Flask, render_template, request, redirect, url_for
+from dotenv import load_dotenv
+
+import watcher
+
+load_dotenv()  # liest die .env Datei mit den API-Keys ein
 
 app = Flask(__name__)
 DATEI = "tasks.json"
@@ -48,5 +53,35 @@ def done(index):
     return redirect(url_for("index"))
 
 
+@app.route("/rate/<int:index>", methods=["POST"])
+def rate(index):
+    bewertung = request.form.get("bewertung", type=int)
+    aufgaben = lade_aufgaben()
+    if 0 <= index < len(aufgaben) and bewertung in (1, 2, 3, 4, 5):
+        aufgaben[index]["bewertung"] = bewertung
+        speichere_aufgaben(aufgaben)
+    return redirect(url_for("index"))
+
+
+@app.route("/ebay")
+def ebay_liste():
+    artikel = watcher.lade_artikel()
+    return render_template("ebay.html", artikel=artikel)
+
+
+@app.route("/ebay/add", methods=["POST"])
+def ebay_hinzufuegen():
+    item_id = request.form.get("item_id", "").strip()
+    if item_id:
+        ergebnis = watcher.artikel_hinzufuegen(item_id)
+        if ergebnis is None:
+            return "Artikel konnte nicht gefunden werden. Item-ID prüfen.", 400
+    return redirect(url_for("ebay_liste"))
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Hintergrund-Watcher starten, der die eBay-Artikel überwacht
+    # und bei 15/10/5 Minuten Restzeit eine Telegram-Nachricht sendet
+    watcher.starten()
+    # use_reloader=False, damit der Watcher-Thread nicht doppelt startet
+    app.run(debug=True, use_reloader=False)
