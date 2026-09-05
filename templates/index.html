@@ -4,26 +4,23 @@
   <meta charset="UTF-8">
   <title>Meine To-Do-Liste</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 560px; margin: 60px auto; background: #f7f7f7; }
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 60px auto; background: #f7f7f7; }
     h1 { color: #333; }
     form.add-form { display: flex; gap: 8px; margin-bottom: 20px; }
-    input[type=text] { flex: 1; padding: 8px; }
+    input[type=text], input[type=time] { padding: 8px; }
+    input[type=text] { flex: 1; }
     button { padding: 8px 14px; cursor: pointer; }
-    ul { list-style: none; padding: 0; }
-    li {
-      background: white;
-      padding: 10px 14px;
-      margin-bottom: 6px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .task-text { flex: 1; }
-    .right-side { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; }
+    th, td { padding: 14px 20px; text-align: left; vertical-align: middle; }
+    th { font-size: 0.85em; text-transform: uppercase; color: #666; border-bottom: 2px solid #ddd; }
+
+    tbody tr:nth-child(odd) td  { background: #ffffff; }
+    tbody tr:nth-child(even) td { background: #e6e6e6; }  /* ~10% Grau */
+
+    .zeit-spalte { white-space: nowrap; color: #555; }
     .done-label { font-weight: bold; color: #2e7d32; }
-    .rating-form { display: flex; align-items: center; gap: 4px; font-size: 0.85em; color: #555; }
+    .rating-form { display: flex; gap: 4px; }
     .star-btn {
       background: none;
       border: 1px solid #ccc;
@@ -31,49 +28,65 @@
       padding: 2px 8px;
       cursor: pointer;
     }
-    .star-btn:hover { background: #eee; }
+    .star-btn:hover { background: #f0f0f0; }
     .stars { font-size: 1.1em; letter-spacing: 2px; }
+    .leer { color: #bbb; }
   </style>
 </head>
 <body>
   <h1>📝 Meine To-Do-Liste</h1>
 
   <form class="add-form" action="/add" method="post">
+    <input type="time" name="zeit">
     <input type="text" name="text" placeholder="Neue Aufgabe..." required>
     <button type="submit">Hinzufügen</button>
   </form>
 
-  <ul>
-    {% for aufgabe in aufgaben %}
-      <li>
-        <span class="task-text">{{ aufgabe.text }}</span>
-
-        <div class="right-side">
-          {% if aufgabe.erledigt %}
-            <span class="done-label">Done</span>
-
-            {% if aufgabe.bewertung %}
-              <span class="stars">
-                {{ '⭐' * aufgabe.bewertung }}{{ '☆' * (5 - aufgabe.bewertung) }}
-              </span>
+  <table>
+    <thead>
+      <tr>
+        <th>Zeit</th>
+        <th>Aktivität</th>
+        <th>Todo / Done</th>
+        <th>Bewertung</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for aufgabe in aufgaben %}
+        <tr>
+          <td class="zeit-spalte">{{ aufgabe.zeit if aufgabe.zeit else '—' }}</td>
+          <td>{{ aufgabe.text }}</td>
+          <td>
+            {% if aufgabe.erledigt %}
+              <span class="done-label">Done</span>
             {% else %}
-              <form class="rating-form" action="/rate/{{ loop.index0 }}" method="post">
-                {% for n in range(1, 6) %}
-                  <button class="star-btn" type="submit" name="bewertung" value="{{ n }}">{{ n }}</button>
-                {% endfor %}
+              <form action="/done/{{ loop.index0 }}" method="post">
+                <button type="submit">Erledigt</button>
               </form>
             {% endif %}
-
-          {% else %}
-            <form action="/done/{{ loop.index0 }}" method="post">
-              <button type="submit">Erledigt</button>
-            </form>
-          {% endif %}
-        </div>
-      </li>
-    {% else %}
-      <p>Noch keine Aufgaben vorhanden.</p>
-    {% endfor %}
-  </ul>
+          </td>
+          <td>
+            {% if aufgabe.erledigt %}
+              {% if aufgabe.bewertung %}
+                <span class="stars">
+                  {{ '⭐' * aufgabe.bewertung }}{{ '☆' * (5 - aufgabe.bewertung) }}
+                </span>
+              {% else %}
+                <form class="rating-form" action="/rate/{{ loop.index0 }}" method="post">
+                  {% for n in range(1, 6) %}
+                    <button class="star-btn" type="submit" name="bewertung" value="{{ n }}">{{ n }}</button>
+                  {% endfor %}
+                </form>
+              {% endif %}
+            {% else %}
+              <span class="leer">—</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4">Noch keine Aufgaben vorhanden.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </body>
 </html>
